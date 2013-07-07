@@ -181,7 +181,7 @@ class Node
 
     /**
      * Holds the PAGI client.
-     * @var PAGI\Client\IClient
+     * @var \PAGI\Client\IClient
      */
     private $_client = null;
     /**
@@ -307,6 +307,12 @@ class Node
      * @var Closure
      */
     private $_executeOnInputFailed = null;
+    /**
+     * Callback to execute when no input from user
+     * Enter description here ...
+     * @var Closure
+     */
+    private $_executeBeforeNoInput = null;
     /**
      * When true, the user may retry the input by pressing the cancel button
      * if and only if he/she has already input one or more digits.
@@ -1212,6 +1218,20 @@ class Node
     }
 
     /**
+     * Specify a callback function to invoke when the no input is inserted from
+     * user.
+     *
+     * @param \Closure $callback
+     *
+     * @return Node
+     */
+    public function executeBeforeNoInput(\Closure $callback)
+    {
+        $this->_executeBeforeNoInput = $callback;
+        return $this;
+    }
+
+    /**
      * Executes after the 1st failed validation.
      *
      * @param \Closure $callback
@@ -1248,11 +1268,17 @@ class Node
             }
             // dont play on last attempt by default
             if (
-                $this->_onNoInputMessage !== null
-                && !$this->hasInput()
+                !$this->hasInput()
                 && ($this->_playOnNoInputInLastAttempt || $attempts != ($this->_totalAttemptsForInput - 1))
             ) {
-                $this->addPrePromptMessage($this->_onNoInputMessage);
+                if ($this->_executeBeforeNoInput !== null) {
+                    $callback = $this->_executeBeforeNoInput;
+                    $this->beforeNoInput();
+                    $callback($this);
+                }
+                if ($this->_onNoInputMessage !== null) {
+                    $this->addPrePromptMessage($this->_onNoInputMessage);
+                }
                 continue;
             }
             if ($this->hasInput()) {
