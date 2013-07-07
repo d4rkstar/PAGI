@@ -312,7 +312,7 @@ class Node
      * Enter description here ...
      * @var Closure
      */
-    private $_executeBeforeNoInput = null;
+    private $_executeOnBeforeNoInput = null;
     /**
      * When true, the user may retry the input by pressing the cancel button
      * if and only if he/she has already input one or more digits.
@@ -1172,6 +1172,16 @@ class Node
     }
 
     /**
+     * Convenient hook to execute before calling the beforeOnNoInput callback.
+     *
+     * @return void
+     */
+    protected function beforeOnNoInput()
+    {
+
+    }
+
+    /**
      * Convenient hook to execute before calling the onValidInput callback.
      *
      * @return void
@@ -1225,9 +1235,9 @@ class Node
      *
      * @return Node
      */
-    public function executeBeforeNoInput(\Closure $callback)
+    public function executeOnBeforeNoInput(\Closure $callback)
     {
-        $this->_executeBeforeNoInput = $callback;
+        $this->_executeOnBeforeNoInput = $callback;
         return $this;
     }
 
@@ -1271,9 +1281,9 @@ class Node
                 !$this->hasInput()
                 && ($this->_playOnNoInputInLastAttempt || $attempts != ($this->_totalAttemptsForInput - 1))
             ) {
-                if ($this->_executeBeforeNoInput !== null) {
-                    $callback = $this->_executeBeforeNoInput;
-                    $this->beforeNoInput();
+                if ($this->_executeOnBeforeNoInput !== null) {
+                    $callback = $this->_executeOnBeforeNoInput;
+                    $this->beforeOnNoInput();
                     $callback($this);
                 }
                 if ($this->_onNoInputMessage !== null) {
